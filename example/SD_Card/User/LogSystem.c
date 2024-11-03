@@ -15,6 +15,7 @@ LogInformation Log;  // A LogInformation object
  *         FAIL: Fail to initialize log system
  */
 uint8_t LogSystem_Init (void) {
+    // Mount the logical drive for log system and format the disk
     if (f_mount(&Log.FatFS, (const TCHAR*)Log.Path, 0) == FR_OK && f_mkfs((const TCHAR*)Log.Path, FM_ANY, 0, Log.Buffer, sizeof(Log.Buffer)) == FR_OK) {
         return SUCCESS;
     }
@@ -34,6 +35,7 @@ uint8_t LogSystem_Init (void) {
  *         FAIL: Fail to deinitialize log system
  */
 uint8_t LogSystem_DeInit (void) {
+    // Unmount the logical drive for log system
     if (f_mount(NULL, (const TCHAR*)Log.Path, 0) == FR_OK) {
         return SUCCESS;
     }
@@ -53,7 +55,30 @@ uint8_t LogSystem_DeInit (void) {
  *         FAIL: Fail to create a file
  */
 uint8_t LogSystem_CreateFile (char* FileName) {
+    // Create a file and make it be able to be written
+    // If the file is existing, the file will be overwritten
     if (f_open(&Log.File, (const TCHAR*)FileName, FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+        return SUCCESS;
+    }
+    else {
+        return FAIL;
+    }
+}
+
+/**
+ * @name LogSystem_OpenFile
+ * 
+ * @brief Open a file in log system
+ * 
+ * @param FileName: Pointer to the name of the file which will be opened
+ * 
+ * @return SUCCESS: Successfully open a file
+ *         FAIL: Fail to open a file
+ */
+uint8_t LogSystem_OpenFile (char* FileName) {
+    // Open a file and make it be able to be written
+    // If the file does not exist, a new file will be created
+    if (f_open(&Log.File, (const TCHAR*)FileName, FA_OPEN_ALWAYS | FA_WRITE) == FR_OK) {
         return SUCCESS;
     }
     else {
@@ -72,6 +97,7 @@ uint8_t LogSystem_CreateFile (char* FileName) {
  *         FAIL: Fail to close the file
  */
 uint8_t LogSystem_CloseFile (void) {
+    // Close files
     if (f_close(&Log.File) == FR_OK) {
         return SUCCESS;
     }
@@ -110,22 +136,25 @@ uint8_t LogSystem_WriteString (char* Str) {
  *         FAIL: Fail to write number to file
  */
 uint8_t LogSystem_WriteNumber (float Num) {
-    int TempNum = (int)(Num * 1000000);
-    int ToolNum = 1;
-    int DecimalNum = 6;
-    int WriteLength = 0;
-    int count = 0;
-    char WriteChar;
+    int TempNum = (int)(Num * 1000000);  // Multiply by 1000000 to keep 6 decimal places, and use a variable to store the result
+    int ToolNum = 1;                     // A variable to store the multiples of 10
+    int DecimalNum = 6;                  // The number of decimal
+    int WriteLength = 0;                 // The length of the number which will be written
+    int count = 0;                       // The exponential of ToolNum
+    char WriteChar;                      // A variable to store a single number
 
+    // Calculate the length of number which will be written into file
     while (TempNum != 0) {
         WriteLength++;
         TempNum /= 10;
     }
 
+    // Calculate the exponential of ToolNum
     if (WriteLength != 0) {
         count = WriteLength - 1;
     }
 
+    // Calculate ToolNum
     while (count > 0) {
         ToolNum *= 10;
         count--;
@@ -133,6 +162,7 @@ uint8_t LogSystem_WriteNumber (float Num) {
 
     TempNum = (int)(Num * 1000000);
 
+    // Write the number with 6 decimal places to a file
     for (int i = 0; i < WriteLength; i++) {
         WriteChar = '0' + (TempNum / ToolNum);
         if (f_write(&Log.File, (const TCHAR*)&WriteChar, sizeof(WriteChar), (void*)&Log.WriteByte) != FR_OK) {

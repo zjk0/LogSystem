@@ -29,6 +29,7 @@ extern LogInformation Log;  // A LogInformation object
 uint8_t LogSystem_Init (void);
 uint8_t LogSystem_DeInit (void);
 uint8_t LogSystem_CreateFile (char* FileName);
+uint8_t LogSystem_OpenFile (char* FileName);
 uint8_t LogSystem_CloseFile (void);
 uint8_t LogSystem_WriteString (char* Str);
 uint8_t LogSystem_WriteNumber (float Num);

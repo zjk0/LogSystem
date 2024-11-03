@@ -56,7 +56,29 @@ uint8_t LogSystem_DeInit (void) {
  */
 uint8_t LogSystem_CreateFile (char* FileName) {
     // Create a file and make it be able to be written
+    // If the file is existing, the file will be overwritten
     if (f_open(&Log.File, (const TCHAR*)FileName, FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+        return SUCCESS;
+    }
+    else {
+        return FAIL;
+    }
+}
+
+/**
+ * @name LogSystem_OpenFile
+ * 
+ * @brief Open a file in log system
+ * 
+ * @param FileName: Pointer to the name of the file which will be opened
+ * 
+ * @return SUCCESS: Successfully open a file
+ *         FAIL: Fail to open a file
+ */
+uint8_t LogSystem_OpenFile (char* FileName) {
+    // Open a file and make it be able to be written
+    // If the file does not exist, a new file will be created
+    if (f_open(&Log.File, (const TCHAR*)FileName, FA_OPEN_ALWAYS | FA_WRITE) == FR_OK) {
         return SUCCESS;
     }
     else {
